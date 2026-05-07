@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yas Plaza Hotels — Roster System</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0F1E35;--navy2:#1B2D4A;--gold:#C9963A;--gold2:#E8B04A;
+  --slate:#4A6080;--slate2:#7A95B8;--ice:#EEF3FA;--ice2:#F7FAFF;
+  --green:#1B6B3A;--green-l:#D4EDDA;--red:#B71C1C;--red-l:#FDECEA;
+  --amber:#E65C00;--amber-l:#FFF3E0;--purple:#5B21B6;--purple-l:#EDE9FE;
+  --teal:#0F766E;--teal-l:#CCFBF1;--radius:14px;--radius-sm:8px;
+  --shadow:0 4px 24px rgba(15,30,53,.12);--shadow-lg:0 12px 48px rgba(15,30,53,.18);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#0B1525;color:var(--navy);min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:var(--gold);border-radius:3px}
+
+/* LANDING */
+#landing{position:fixed;inset:0;background:linear-gradient(135deg,#0B1525,#0F1E35 50%,#152840);display:flex;align-items:center;justify-content:center;z-index:1000}
+.land-bg{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.land-bg::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(201,150,58,.08),transparent 70%);top:-100px;right:-100px;animation:pulse 6s ease-in-out infinite}
+.land-bg::after{content:'';position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(201,150,58,.05),transparent 70%);bottom:-50px;left:-50px;animation:pulse 8s ease-in-out infinite reverse}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:.6}50%{transform:scale(1.1);opacity:1}}
+.land-card{background:rgba(255,255,255,.04);backdrop-filter:blur(20px);border:1px solid rgba(201,150,58,.2);border-radius:24px;padding:48px 44px;width:420px;max-width:95vw;text-align:center;position:relative;animation:fadeUp .6s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.land-logo{width:68px;height:68px;background:linear-gradient(135deg,var(--gold),var(--gold2));border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 20px;box-shadow:0 8px 32px rgba(201,150,58,.4)}
+.land-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff;margin-bottom:4px}
+.land-sub{color:var(--slate2);font-size:12px;margin-bottom:32px;line-height:1.6}
+.land-divider{display:flex;align-items:center;gap:10px;margin:20px 0;color:rgba(255,255,255,.2);font-size:11px}
+.land-divider::before,.land-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.1)}
+.btn-emp{width:100%;padding:15px;background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:12px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fff;cursor:pointer;transition:.25s;box-shadow:0 4px 20px rgba(201,150,58,.4)}
+.btn-emp:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(201,150,58,.5)}
+.btn-adm{width:100%;padding:13px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;font-size:13px;font-weight:500;color:rgba(255,255,255,.7);cursor:pointer;transition:.25s;margin-top:8px}
+.btn-adm:hover{background:rgba(255,255,255,.1);color:#fff}
+
+/* ADMIN PASSWORD MODAL */
+#adminPassModal{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:2000}
+#adminPassModal.show{display:flex}
+.pass-card{background:#1B2D4A;border:1px solid rgba(201,150,58,.3);border-radius:20px;padding:40px 36px;width:380px;max-width:95vw;text-align:center;animation:fadeUp .3s ease both}
+.pass-card h3{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fff;margin-bottom:6px}
+.pass-card p{color:var(--slate2);font-size:12px;margin-bottom:24px}
+.pass-input{width:100%;padding:14px;background:rgba(255,255,255,.08);border:2px solid rgba(201,150,58,.3);border-radius:10px;font-size:16px;color:#fff;text-align:center;letter-spacing:4px;outline:none;transition:.2s;font-family:'DM Mono',monospace}
+.pass-input:focus{border-color:var(--gold);background:rgba(255,255,255,.1)}
+.pass-error{color:#ff6b6b;font-size:11px;margin-top:8px;min-height:16px}
+.pass-btn{width:100%;padding:13px;background:var(--gold);border:none;border-radius:10px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fff;cursor:pointer;margin-top:14px;transition:.2s}
+.pass-btn:hover{filter:brightness(.92)}
+.pass-cancel{background:transparent;border:none;color:var(--slate2);cursor:pointer;font-size:12px;margin-top:12px;text-decoration:underline}
+
+/* APP SHELL */
+#app{display:none;flex-direction:column;min-height:100vh;background:var(--ice2)}
+#app.visible{display:flex}
+.topbar{background:linear-gradient(90deg,var(--navy),var(--navy2));padding:0 24px;display:flex;align-items:center;height:58px;gap:14px;box-shadow:0 2px 20px rgba(0,0,0,.25);position:sticky;top:0;z-index:100}
+.topbar-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:#fff;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.topbar-logo span{background:var(--gold);color:#fff;border-radius:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:15px}
+.topbar-nav{display:flex;gap:2px;margin-left:16px}
+.tab-btn{padding:6px 14px;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:.2s;color:rgba(255,255,255,.5);background:transparent;font-family:'DM Sans',sans-serif}
+.tab-btn:hover{color:#fff;background:rgba(255,255,255,.08)}
+.tab-btn.active{background:rgba(201,150,58,.25);color:var(--gold2)}
+.topbar-right{display:flex;align-items:center;gap:8px;margin-left:auto}
+.month-nav{display:flex;align-items:center;gap:5px}
+.month-nav button{background:rgba(255,255,255,.1);border:none;color:#fff;border-radius:6px;width:26px;height:26px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:.2s}
+.month-nav button:hover{background:rgba(255,255,255,.2)}
+.month-label{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:#fff;min-width:110px;text-align:center}
+.btn-exit{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);border-radius:7px;padding:5px 11px;font-size:11px;cursor:pointer;transition:.2s}
+.btn-exit:hover{background:rgba(255,255,255,.15);color:#fff}
+
+.page{display:none;flex:1;padding:22px 24px;animation:fadeIn .25s ease both}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* CARDS */
+.card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--ice);display:flex;align-items:center;justify-content:space-between;gap:10px}
+.card-title{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--navy);display:flex;align-items:center;gap:7px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.stat-card{background:#fff;border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow)}
+.stat-val{font-family:'Syne',sans-serif;font-size:30px;font-weight:800;line-height:1;margin:6px 0 3px}
+.stat-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;opacity:.6}
+
+/* BUTTONS */
+.btn{border:none;border-radius:var(--radius-sm);cursor:pointer;font-size:12px;font-weight:600;padding:7px 14px;transition:.2s;display:inline-flex;align-items:center;gap:5px;font-family:'DM Sans',sans-serif;white-space:nowrap}
+.btn:hover{filter:brightness(.92)}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--navy2);color:#fff}
+.btn-gold{background:var(--gold);color:#fff}
+.btn-ghost{background:var(--ice);color:var(--navy)}
+.btn-danger{background:var(--red);color:#fff}
+.btn-green{background:var(--green);color:#fff}
+.btn-sm{padding:5px 10px;font-size:11px}
+.btn-xs{padding:3px 7px;font-size:10px;border-radius:6px}
+
+/* INPUTS */
+.inp{border:1.5px solid #dde3f0;border-radius:var(--radius-sm);padding:8px 11px;font-size:12px;background:#fff;color:var(--navy);outline:none;width:100%;transition:.2s;font-family:'DM Sans',sans-serif}
+.inp:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,150,58,.12)}
+.inp-sm{padding:5px 9px;font-size:11px}
+label.lbl{font-size:10px;font-weight:600;color:var(--slate);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.4px}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto;overflow-y:auto;max-height:70vh}
+table{border-collapse:collapse;width:100%}
+th{padding:9px 11px;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.7);background:var(--navy);white-space:nowrap;position:sticky;top:0;z-index:3}
+td{padding:8px 11px;font-size:11px;border-bottom:1px solid var(--ice);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(201,150,58,.04)}
+.sticky-col{position:sticky;left:0;z-index:4;background:#fff}
+th.sticky-col{z-index:6;background:var(--navy)}
+tr:hover td.sticky-col{background:rgba(201,150,58,.04)}
+
+/* SHIFT PILLS */
+.sp{display:inline-flex;align-items:center;justify-content:center;border-radius:5px;font-size:9px;font-weight:800;padding:2px 4px;cursor:pointer;transition:.15s;min-width:32px;border:1.5px solid transparent;letter-spacing:.2px;line-height:1.3}
+.sp:hover{transform:scale(1.15);filter:brightness(.85);z-index:5;position:relative}
+.sp-MOR{background:#FFF8E1;color:#E65100;border-color:#FFB300}
+.sp-AFT{background:#E8EAF6;color:#283593;border-color:#5C6BC0}
+.sp-EVE{background:#EDE7F6;color:#4527A0;border-color:#7E57C2}
+.sp-M11{background:#E0F2F1;color:#004D40;border-color:#26A69A}
+.sp-M12{background:#F3E5F5;color:#6A1B9A;border-color:#AB47BC}
+.sp-FLEX{background:#FCE4EC;color:#880E4F;border-color:#EC407A}
+.sp-OFF{background:#FFCDD2;color:#B71C1C;border-color:#EF9A9A}
+.sp-AL{background:#FFF9C4;color:#F57F17;border-color:#FFD54F}
+.sp-EX{background:#F3E5F5;color:#6A1B9A;border-color:#CE93D8}
+.sp-UNP{background:#FFEBEE;color:#B71C1C;border-color:#FFCDD2}
+.sp-SH{background:#C8E6C9;color:#1B5E20;border-color:#66BB6A}
+.sp-empty{background:#f5f5f5;color:#bbb;border-color:#e0e0e0}
+.sat-th{background:rgba(183,28,28,.4)!important;color:#FFD54F!important;border-left:2px solid #c62828!important;border-right:2px solid #c62828!important}
+.sat-td{border-left:1px solid rgba(198,40,40,.25)!important;border-right:1px solid rgba(198,40,40,.25)!important}
+
+/* SHIFT POPUP */
+.shift-popup{position:fixed;z-index:800;background:#fff;border-radius:12px;box-shadow:0 12px 48px rgba(0,0,0,.22);padding:10px;display:grid;grid-template-columns:1fr 1fr;gap:5px;min-width:196px;border:1.5px solid var(--ice);animation:popIn .12s ease both}
+@keyframes popIn{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}
+.spi{padding:5px 7px;border-radius:6px;cursor:pointer;display:flex;flex-direction:column;border:1.5px solid transparent;transition:.12s}
+.spi:hover{transform:scale(1.04)}
+.spi-code{font-size:10px;font-weight:800;letter-spacing:.2px}
+.spi-time{font-size:8px;opacity:.7;margin-top:1px}
+
+/* DEPT BADGE */
+.dept-badge{display:inline-flex;align-items:center;padding:1px 7px;border-radius:100px;font-size:9px;font-weight:700;border:1px solid transparent}
+
+/* HOTEL BADGE */
+.hotel-badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:100px;font-size:9px;font-weight:700;border:1px solid transparent}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(10,20,50,.5);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:700;padding:16px}
+.modal{background:#fff;border-radius:18px;padding:26px;width:560px;max-width:100%;box-shadow:var(--shadow-lg);max-height:92vh;overflow-y:auto;animation:fadeUp .2s ease both}
+.modal h3{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--navy);margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-full{grid-column:1/-1}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--ice)}
+
+/* FILTER BAR */
+.filter-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+
+/* ALERT */
+.alert{border-radius:10px;padding:12px 16px;margin-bottom:12px;display:flex;gap:10px;align-items:flex-start;font-size:12px}
+.alert-danger{background:var(--red-l);border:1.5px solid var(--red);color:var(--red)}
+.alert-success{background:var(--green-l);border:1.5px solid var(--green);color:var(--green)}
+
+/* COVERAGE */
+.cov-cell{border-radius:5px;font-size:11px;font-weight:800;text-align:center;padding:3px 2px;min-width:28px}
+.cov-0{background:var(--red-l);color:var(--red)}
+.cov-1{background:#FFF9C4;color:#F57F17}
+.cov-ok{background:var(--green-l);color:var(--green)}
+
+/* EMPLOYEE PORTAL */
+#emp-portal{position:fixed;inset:0;background:linear-gradient(135deg,#0B1525,#0F1E35 50%,#152840);display:none;align-items:center;justify-content:center;z-index:800;flex-direction:column;padding:20px}
+#emp-portal.show{display:flex}
+.emp-login{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);border:1px solid rgba(201,150,58,.2);border-radius:22px;padding:40px 36px;width:400px;max-width:100%;text-align:center;animation:fadeUp .4s ease both}
+.emp-login h2{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:#fff;margin-bottom:6px}
+.emp-login p{color:var(--slate2);font-size:12px;margin-bottom:24px;line-height:1.5}
+.emp-id-inp{width:100%;padding:15px;background:rgba(255,255,255,.08);border:2px solid rgba(201,150,58,.3);border-radius:11px;font-family:'DM Mono',monospace;font-size:20px;font-weight:500;color:#fff;text-align:center;letter-spacing:4px;outline:none;transition:.2s;text-transform:uppercase}
+.emp-id-inp:focus{border-color:var(--gold);box-shadow:0 0 0 4px rgba(201,150,58,.15)}
+.emp-id-inp::placeholder{color:rgba(255,255,255,.2);letter-spacing:2px;font-size:14px}
+.emp-login-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:11px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fff;cursor:pointer;margin-top:12px;transition:.25s;box-shadow:0 4px 20px rgba(201,150,58,.4)}
+.emp-login-btn:hover{transform:translateY(-2px)}
+.emp-err{color:#ff6b6b;font-size:11px;margin-top:7px;min-height:16px}
+.emp-back-link{background:transparent;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:11px;margin-top:14px;text-decoration:underline}
+.emp-back-link:hover{color:#fff}
+
+/* Employee Dashboard */
+.emp-dash{width:100%;max-width:680px;animation:fadeUp .35s ease both;display:none}
+.emp-dash.show{display:block}
+.emp-hdr{background:rgba(255,255,255,.06);border:1px solid rgba(201,150,58,.2);border-radius:16px;padding:24px;margin-bottom:14px;display:flex;align-items:center;gap:16px}
+.emp-avatar{width:54px;height:54px;border-radius:13px;background:var(--gold);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:#fff;flex-shrink:0}
+.emp-nm{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fff}
+.emp-ps{color:var(--gold2);font-size:11px;margin-top:2px;font-weight:500}
+.emp-ht{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:100px;padding:3px 10px;font-size:10px;color:rgba(255,255,255,.75);font-weight:600;margin-top:5px}
+.emp-dept-tag{display:inline-flex;padding:2px 8px;border-radius:100px;font-size:10px;font-weight:700;margin-top:4px;margin-left:4px}
+
+.emp-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.emp-stat{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px;text-align:center}
+.emp-stat-v{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#fff}
+.emp-stat-l{font-size:9px;color:var(--slate2);margin-top:2px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+
+.week-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#fff;margin-bottom:8px;display:flex;align-items:center;gap:7px}
+.week-tag{background:var(--gold);color:#fff;border-radius:5px;padding:2px 8px;font-size:10px}
+.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:14px}
+.week-day{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:11px;padding:10px 4px;text-align:center;transition:.2s}
+.week-day.today{border-color:var(--gold);background:rgba(201,150,58,.15)}
+.week-day.is-sat{border-color:rgba(198,40,40,.5);background:rgba(198,40,40,.1)}
+.wd-name{font-size:8px;font-weight:700;color:var(--slate2);text-transform:uppercase;letter-spacing:.4px}
+.wd-num{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fff;margin:3px 0}
+.wd-shift{font-size:9px;font-weight:700;padding:2px 5px;border-radius:5px;margin-top:3px;display:inline-block}
+.wd-time{font-size:7px;color:var(--slate2);margin-top:2px}
+
+.emp-summary-box{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:13px;padding:16px;margin-bottom:12px}
+.esb-title{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:#fff;margin-bottom:12px}
+.esb-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.esb-item{background:rgba(255,255,255,.06);border-radius:9px;padding:10px;text-align:center}
+.esb-val{font-size:16px;font-weight:800}
+.esb-lbl{font-size:8px;color:rgba(255,255,255,.4);margin-top:2px;text-transform:uppercase;letter-spacing:.4px}
+
+/* CHANGE LOG */
+.log-entry{padding:10px 14px;border-bottom:1px solid var(--ice);font-size:11px;display:flex;align-items:center;gap:10px}
+.log-entry:last-child{border-bottom:none}
+.log-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+@media(max-width:768px){
+  .grid-4{grid-template-columns:1fr 1fr}
+  .emp-stats{grid-template-columns:1fr 1fr}
+  .week-grid{grid-template-columns:repeat(4,1fr)}
+  .topbar{padding:0 12px}
+  .page{padding:14px 12px}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ LANDING ══ -->
+<div id="landing">
+  <div class="land-bg"></div>
+  <div class="land-card">
+    <div class="land-logo">🏨</div>
+    <div class="land-title">Yas Plaza Hotels</div>
+    <div class="land-sub">Front Office · Housekeeping · Recreation<br>Staff Roster Management System</div>
+    <button class="btn-emp" onclick="openEmpPortal()">
+      👤 View My Roster<br>
+      <small style="font-weight:400;opacity:.8;font-size:11px">Enter your Employee ID</small>
+    </button>
+    <div class="land-divider">or</div>
+    <button class="btn-adm" onclick="showAdminPass()">🔐 Admin Panel</button>
+  </div>
+</div>
+
+<!-- ══ ADMIN PASSWORD ══ -->
+<div id="adminPassModal">
+  <div class="pass-card">
+    <div style="font-size:36px;margin-bottom:14px">🔐</div>
+    <h3>Admin Access</h3>
+    <p>Enter the admin password to access the roster management panel.</p>
+    <input class="pass-input" id="passInput" type="password" placeholder="••••••••" maxlength="20"
+      onkeydown="if(event.key==='Enter')checkPass()">
+    <div class="pass-error" id="passError"></div>
+    <button class="pass-btn" onclick="checkPass()">Unlock Admin Panel →</button>
+    <br>
+    <button class="pass-cancel" onclick="cancelPass()">Cancel</button>
+    <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08);font-size:10px;color:rgba(255,255,255,.3)">
+      Default password: <span id="hintToggle" style="cursor:pointer;text-decoration:underline" onclick="toggleHint()">show hint</span>
+      <span id="passHint" style="display:none;color:rgba(255,255,255,.5)"> → <b>Admin@2025</b></span>
+    </div>
+    <div style="margin-top:8px">
+      <button class="pass-cancel" onclick="changePasswordFlow()" style="font-size:10px">🔑 Change Password</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ EMPLOYEE PORTAL ══ -->
+<div id="emp-portal">
+  <div class="emp-login" id="empLoginForm">
+    <div style="font-size:36px;margin-bottom:14px">🪪</div>
+    <h2>My Roster</h2>
+    <p>Enter your Employee ID to view your upcoming shifts, hotel assignment, and leave balance.</p>
+    <input class="emp-id-inp" id="empIdInp" placeholder="e.g. E001" maxlength="8"
+      oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')loginEmp()">
+    <div class="emp-err" id="empErr"></div>
+    <button class="emp-login-btn" onclick="loginEmp()">View My Schedule →</button>
+    <br>
+    <button class="emp-back-link" onclick="backToLanding()">← Back to Home</button>
+  </div>
+
+  <div class="emp-dash" id="empDash">
+    <div class="emp-hdr">
+      <div class="emp-avatar" id="eAvatar">?</div>
+      <div style="flex:1">
+        <div class="emp-nm" id="eNm">—</div>
+        <div class="emp-ps" id="ePs">—</div>
+        <div style="margin-top:4px;display:flex;align-items:center;flex-wrap:wrap;gap:4px">
+          <div class="emp-ht" id="eHt">🏨 —</div>
+          <div class="emp-dept-tag" id="eDept">—</div>
+        </div>
+      </div>
+      <button class="btn-exit" onclick="logoutEmp()">✕ Exit</button>
+    </div>
+
+    <div class="emp-stats">
+      <div class="emp-stat"><div class="emp-stat-v" id="es-work" style="color:#4ADE80">—</div><div class="emp-stat-l">Work Days</div></div>
+      <div class="emp-stat"><div class="emp-stat-v" id="es-off" style="color:#F87171">—</div><div class="emp-stat-l">Days Off</div></div>
+      <div class="emp-stat"><div class="emp-stat-v" id="es-al" style="color:#FBBF24">—</div><div class="emp-stat-l">Annual Leave</div></div>
+      <div class="emp-stat"><div class="emp-stat-v" id="es-hrs" style="color:#60A5FA">—</div><div class="emp-stat-l">Total Hours</div></div>
+    </div>
+
+    <div class="week-title">📅 Next 7 Days <span class="week-tag" id="eWeekRange"></span></div>
+    <div class="week-grid" id="eWeekGrid"></div>
+
+    <div class="emp-summary-box">
+      <div class="esb-title">📊 Month Summary — <span id="eMonthLbl" style="color:var(--gold2)"></span></div>
+      <div class="esb-grid">
+        <div class="esb-item"><div class="esb-val" style="color:#FBBF24" id="es-al-rem">—</div><div class="esb-lbl">Annual Leave Left</div></div>
+        <div class="esb-item"><div class="esb-val" style="color:#C084FC" id="es-ex">—</div><div class="esb-lbl">Extra Off Days</div></div>
+        <div class="esb-item"><div class="esb-val" style="color:#F87171" id="es-unp">—</div><div class="esb-lbl">Unpaid Off</div></div>
+      </div>
+    </div>
+
+    <div style="text-align:center;color:rgba(255,255,255,.25);font-size:10px;margin-top:4px">
+      Any changes made by your manager are reflected immediately · Last saved: <span id="eLastSave">—</span>
+    </div>
+    <div style="text-align:center;margin-top:10px">
+      <button class="emp-back-link" onclick="logoutEmp()">← Back to Login</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ADMIN APP ══ -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-logo"><span>🏨</span>Yas Plaza Roster</div>
+    <div class="topbar-nav">
+      <button class="tab-btn active" data-page="dash"     onclick="switchPage('dash')">📊 Dashboard</button>
+      <button class="tab-btn"        data-page="roster"   onclick="switchPage('roster')">📅 Roster</button>
+      <button class="tab-btn"        data-page="staff"    onclick="switchPage('staff')">👥 Staff</button>
+      <button class="tab-btn"        data-page="coverage" onclick="switchPage('coverage')">⚠️ Coverage</button>
+      <button class="tab-btn"        data-page="settings" onclick="switchPage('settings')">⚙️ Settings</button>
+    </div>
+    <div class="topbar-right">
+      <div class="month-nav">
+        <button onclick="changeMonth(-1)">‹</button>
+        <div class="month-label" id="monthLabel">—</div>
+        <button onclick="changeMonth(1)">›</button>
+      </div>
+      <select class="inp inp-sm" id="hotelFilter" onchange="renderAll()" style="width:150px">
+        <option value="all">All Hotels</option>
+      </select>
+      <button class="btn btn-gold btn-sm" onclick="exportCSV()">⬇ CSV</button>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,.1);color:#fff" onclick="printRoster()">🖨 PDF</button>
+      <button class="btn-exit" onclick="lockAdmin()">🔒 Lock</button>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="page active" id="page-dash">
+    <div class="grid-4" id="dashStats"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div class="card">
+        <div class="card-header"><div class="card-title">🏨 Staff by Hotel</div></div>
+        <div style="padding:14px" id="hotelBreakdown"></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">🏢 Staff by Department</div></div>
+        <div style="padding:14px" id="deptBreakdown"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <div class="card-header"><div class="card-title">⚠️ Today's Coverage Alerts</div></div>
+      <div style="padding:14px" id="todayAlerts"></div>
+    </div>
+  </div>
+
+  <!-- Roster -->
+  <div class="page" id="page-roster">
+    <div class="filter-bar">
+      <input class="inp inp-sm" placeholder="🔍 Search name / ID…" id="rosterSearch" oninput="renderRoster()" style="max-width:190px">
+      <select class="inp inp-sm" id="rosterPosFilter" onchange="renderRoster()" style="max-width:180px">
+        <option value="all">All Positions</option>
+      </select>
+      <select class="inp inp-sm" id="rosterDeptFilter" onchange="renderRoster()" style="max-width:150px">
+        <option value="all">All Departments</option>
+        <option value="Front Office">Front Office</option>
+        <option value="Housekeeping">Housekeeping</option>
+        <option value="Recreation">Recreation</option>
+      </select>
+      <div style="margin-left:auto;display:flex;gap:6px">
+        <button class="btn btn-ghost btn-sm" onclick="openBulkFill()">⚡ Bulk Fill</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="tbl-wrap" id="rosterWrap"></div>
+    </div>
+  </div>
+
+  <!-- Staff -->
+  <div class="page" id="page-staff">
+    <div class="filter-bar">
+      <input class="inp inp-sm" placeholder="🔍 Search…" id="staffSearch" oninput="renderStaff()" style="max-width:190px">
+      <select class="inp inp-sm" id="staffHotelF" onchange="renderStaff()" style="max-width:150px">
+        <option value="all">All Hotels</option>
+      </select>
+      <select class="inp inp-sm" id="staffDeptF" onchange="renderStaff()" style="max-width:150px">
+        <option value="all">All Departments</option>
+        <option value="Front Office">Front Office</option>
+        <option value="Housekeeping">Housekeeping</option>
+        <option value="Recreation">Recreation</option>
+      </select>
+      <select class="inp inp-sm" id="staffPosF" onchange="renderStaff()" style="max-width:180px">
+        <option value="all">All Positions</option>
+      </select>
+      <div style="margin-left:auto;display:flex;gap:6px">
+        <button class="btn btn-primary btn-sm" onclick="openAddStaff()">+ Add Employee</button>
+        <button class="btn btn-danger btn-sm" onclick="bulkDeleteSelected()">🗑 Delete Selected</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="tbl-wrap" id="staffWrap"></div>
+    </div>
+  </div>
+
+  <!-- Coverage -->
+  <div class="page" id="page-coverage">
+    <div id="covAlerts" style="margin-bottom:12px"></div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">📊 Daily Coverage Per Hotel</div>
+        <span style="font-size:10px;color:var(--slate2)">🚨 0 staff · ⚠️ 1 staff · ✅ 2+ staff</span>
+      </div>
+      <div class="tbl-wrap" id="covTable"></div>
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div class="page" id="page-settings">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <!-- Change Password -->
+      <div class="card">
+        <div class="card-header"><div class="card-title">🔑 Change Admin Password</div></div>
+        <div style="padding:20px;display:flex;flex-direction:column;gap:12px">
+          <div><label class="lbl">Current Password</label><input class="inp" type="password" id="curPass" placeholder="Enter current password"></div>
+          <div><label class="lbl">New Password</label><input class="inp" type="password" id="newPass" placeholder="Min 6 characters"></div>
+          <div><label class="lbl">Confirm New Password</label><input class="inp" type="password" id="confPass" placeholder="Repeat new password"></div>
+          <div id="passChangeMsg" style="font-size:11px;min-height:16px"></div>
+          <button class="btn btn-primary" onclick="changePassword()">Update Password</button>
+        </div>
+      </div>
+      <!-- Shift Settings -->
+      <div class="card">
+        <div class="card-header"><div class="card-title">⏰ Shift Time Settings</div></div>
+        <div style="padding:16px" id="shiftSettingsPanel"></div>
+      </div>
+      <!-- Data Management -->
+      <div class="card" style="grid-column:1/-1">
+        <div class="card-header"><div class="card-title">🗄️ Data Management</div></div>
+        <div style="padding:20px;display:flex;gap:12px;flex-wrap:wrap">
+          <button class="btn btn-gold" onclick="exportCSV()">⬇ Export All Data (CSV)</button>
+          <button class="btn btn-primary" onclick="printRoster()">🖨 Print Current Roster (PDF)</button>
+          <button class="btn btn-ghost" onclick="clearSchedulesOnly()">🗓 Reset Schedules (Keep Staff)</button>
+          <button class="btn btn-danger" onclick="clearAll()">⚠️ Clear ALL Data</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODALS ══ -->
+<!-- Staff Modal -->
+<div class="modal-overlay" id="staffModal" style="display:none" onclick="if(event.target===this)closeModal('staffModal')">
+  <div class="modal">
+    <h3 id="staffModalTitle">➕ Add Employee</h3>
+    <div class="form-grid">
+      <div class="form-full"><label class="lbl">Full Name *</label><input class="inp" id="f-name" placeholder="Full Name"></div>
+      <div><label class="lbl">Employee ID *</label><input class="inp" id="f-id" placeholder="e.g. E001" style="font-family:'DM Mono',monospace;text-transform:uppercase" oninput="this.value=this.value.toUpperCase()"></div>
+      <div><label class="lbl">Department *</label>
+        <select class="inp" id="f-dept" onchange="populatePosForDept()">
+          <option value="Front Office">Front Office</option>
+          <option value="Housekeeping">Housekeeping</option>
+          <option value="Recreation">Recreation</option>
+        </select>
+      </div>
+      <div><label class="lbl">Position *</label><select class="inp" id="f-pos"></select></div>
+      <div><label class="lbl">Hotel *</label><select class="inp" id="f-hotel"></select></div>
+      <div><label class="lbl">Default Shift</label><select class="inp" id="f-shift"></select></div>
+      <div><label class="lbl">Shift Hours</label>
+        <select class="inp" id="f-hrs">
+          <option value="8">8 hours</option><option value="9">9 hours</option>
+          <option value="10">10 hours</option><option value="12">12 hours</option>
+        </select>
+      </div>
+      <div><label class="lbl">Off Days / Month</label><input class="inp" id="f-off" type="number" min="0" max="20" value="4"></div>
+      <div><label class="lbl">Annual Leave Balance</label><input class="inp" id="f-al" type="number" min="0" value="21"></div>
+      <div><label class="lbl">AL Used (days)</label><input class="inp" id="f-alused" type="number" min="0" value="0"></div>
+      <div class="form-full"><label class="lbl">Notes</label><input class="inp" id="f-notes" placeholder="Optional…"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('staffModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveStaff()">Save Employee</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bulk Fill Modal -->
+<div class="modal-overlay" id="bulkModal" style="display:none" onclick="if(event.target===this)closeModal('bulkModal')">
+  <div class="modal">
+    <h3>⚡ Bulk Fill Shifts</h3>
+    <p style="font-size:12px;color:var(--slate);margin-bottom:16px">Fill a shift code across a date range for selected employees.</p>
+    <div class="form-grid">
+      <div><label class="lbl">From Day</label><input class="inp" id="bFrom" type="number" min="1" max="31" value="1"></div>
+      <div><label class="lbl">To Day</label><input class="inp" id="bTo" type="number" min="1" max="31" value="30"></div>
+      <div><label class="lbl">Shift Code</label><select class="inp" id="bShift"></select></div>
+      <div><label class="lbl">Apply To</label>
+        <select class="inp" id="bScope">
+          <option value="visible">Visible staff only</option>
+          <option value="all">All staff</option>
+          <option value="hotel">Current hotel filter</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('bulkModal')">Cancel</button>
+      <button class="btn btn-gold" onclick="applyBulk()">Apply Bulk Fill</button>
+    </div>
+  </div>
+</div>
+
+<!-- Shift Picker Popup -->
+<div class="shift-popup" id="shiftPopup" style="display:none"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════════════════════
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const DAYS_S = ["Sun","Mon","Tue","Wed","Thu","Fri","SAT"];
+
+const HOTELS = [
+  {id:"all",       name:"All Hotels",            color:"#1B2A4A", light:"#C5D1E8"},
+  {id:"marina",    name:"Yas Plaza Marina",       color:"#006064", light:"#E0F7FA"},
+  {id:"circuit",   name:"Yas Plaza Circuit",      color:"#1B2A4A", light:"#D6E0F0"},
+  {id:"mangrove",  name:"Yas Plaza Mangrove",     color:"#1B5E20", light:"#E8F5E9"},
+  {id:"bay",       name:"Yas Plaza Bay",          color:"#0D47A1", light:"#E3F2FD"},
+  {id:"crowne",    name:"Crowne Plaza",           color:"#BF360C", light:"#FBE9E7"},
+  {id:"staybridge",name:"Staybridge",             color:"#4A148C", light:"#EDE7F6"},
+];
+
+const DEPT_POSITIONS = {
+  "Front Office": [
+    "Front Office Manager","Duty Manager","Assistant FO Manager","FO Supervisor",
+    "Reception Supervisor","Front Desk Agent","Receptionist",
+    "Concierge Supervisor","Concierge","Lobby Ambassador","Door Man",
+    "Operator Supervisor","Operator","Hostess","Lounge Waiter",
+  ],
+  "Housekeeping": [
+    "Housekeeping Manager","Assistant Housekeeping Manager",
+    "Housekeeping Supervisor","Room Attendant",
+  ],
+  "Recreation": [
+    "Recreation Assistant Manager","Recreation Supervisor",
+    "Recreation Attendant",
+  ],
+};
+
+const ALL_POSITIONS = Object.values(DEPT_POSITIONS).flat();
+
+const SHIFTS = {
+  MOR: {label:"Morning",    time:"07:00–15:00", hours:8,  bg:"#FFF8E1",color:"#E65100",border:"#FFB300"},
+  AFT: {label:"Afternoon",  time:"15:00–23:00", hours:8,  bg:"#E8EAF6",color:"#283593",border:"#5C6BC0"},
+  EVE: {label:"Evening",    time:"19:00–03:00", hours:8,  bg:"#EDE7F6",color:"#4527A0",border:"#7E57C2"},
+  M11: {label:"Mid-11",     time:"11:00–19:00", hours:8,  bg:"#E0F2F1",color:"#004D40",border:"#26A69A"},
+  M12: {label:"Mid-12",     time:"12:00–20:00", hours:8,  bg:"#F3E5F5",color:"#6A1B9A",border:"#AB47BC"},
+  FLEX:{label:"Flex",       time:"Custom",      hours:8,  bg:"#FCE4EC",color:"#880E4F",border:"#EC407A"},
+  OFF: {label:"Day Off",    time:"—",           hours:0,  bg:"#FFCDD2",color:"#B71C1C",border:"#EF9A9A"},
+  AL:  {label:"Annual Lv.", time:"—",           hours:0,  bg:"#FFF9C4",color:"#F57F17",border:"#FFD54F"},
+  EX:  {label:"Extra Off",  time:"—",           hours:0,  bg:"#F3E5F5",color:"#6A1B9A",border:"#CE93D8"},
+  UNP: {label:"Unpaid Off", time:"—",           hours:0,  bg:"#FFEBEE",color:"#B71C1C",border:"#FFCDD2"},
+  SH:  {label:"Half Day",   time:"—",           hours:4,  bg:"#C8E6C9",color:"#1B5E20",border:"#66BB6A"},
+};
+
+const DEPT_COLORS = {
+  "Front Office":  {bg:"#E3F2FD",color:"#0D47A1"},
+  "Housekeeping":  {bg:"#E8F5E9",color:"#1B5E20"},
+  "Recreation":    {bg:"#FBE9E7",color:"#BF360C"},
+};
+
+const DEFAULT_PASS_HASH = "Admin@2025";
+
+// ═══════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════
+let S = {
+  staff: [],
+  schedules: {},
+  year: new Date().getFullYear(),
+  month: new Date().getMonth(),
+  adminPass: DEFAULT_PASS_HASH,
+  shiftOverrides: {},
+  lastSaved: null,
+  changeLog: [],
+};
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem("yph_roster_v1");
+    if (raw) { S = {...S, ...JSON.parse(raw)}; }
+  } catch(e) { console.warn("Load failed", e); }
+}
+function saveState() {
+  S.lastSaved = new Date().toISOString();
+  try { localStorage.setItem("yph_roster_v1", JSON.stringify(S)); } catch(e) {}
+}
+function logChange(action, detail) {
+  S.changeLog.unshift({time: new Date().toISOString(), action, detail});
+  if (S.changeLog.length > 200) S.changeLog = S.changeLog.slice(0, 200);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SCHEDULE HELPERS
+// ═══════════════════════════════════════════════════════════════
+function schKey() { return `${S.year}-${S.month}`; }
+function getEmpSch(id) { return S.schedules[id]?.[schKey()] || {}; }
+function setShift(id, day, code) {
+  if (!S.schedules[id]) S.schedules[id] = {};
+  if (!S.schedules[id][schKey()]) S.schedules[id][schKey()] = {};
+  const old = S.schedules[id][schKey()][day];
+  S.schedules[id][schKey()][day] = code;
+  const emp = S.staff.find(e=>e.id===id);
+  logChange("Shift Change", `${emp?.name||id} · Day ${day}: ${old||"—"} → ${code}`);
+  saveState();
+}
+function getDaysInMonth(y,m) { return new Date(y,m+1,0).getDate(); }
+function ensureSchedules() {
+  const n = getDaysInMonth(S.year, S.month);
+  S.staff.forEach(emp => {
+    const k = schKey();
+    if (!S.schedules[emp.id]) S.schedules[emp.id] = {};
+    if (!S.schedules[emp.id][k]) {
+      S.schedules[emp.id][k] = genDefaultSch(emp, n);
+    }
+  });
+}
+function genDefaultSch(emp, numDays) {
+  const sats=[], nonSats=[];
+  for(let d=1;d<=numDays;d++) (new Date(S.year,S.month,d).getDay()===6?sats:nonSats).push(d);
+  const satOff = new Set(sats.slice(0, emp.offDays));
+  const rem = emp.offDays - satOff.size;
+  const extra = new Set();
+  if(rem>0){ const step=Math.max(1,Math.floor(nonSats.length/rem)); for(let i=0;i<Math.min(rem,nonSats.length);i++) extra.add(nonSats[i*step]); }
+  const sch={};
+  for(let d=1;d<=numDays;d++) sch[d]=(satOff.has(d)||extra.has(d))?"OFF":emp.defaultShift;
+  return sch;
+}
+function calcStats(emp, sch) {
+  let work=0,off=0,al=0,ex=0,unp=0,hrs=0;
+  Object.values(sch).forEach(c=>{
+    if(!c)return;
+    if(c==="OFF")off++;
+    else if(c==="AL")al++;
+    else if(c==="EX")ex++;
+    else if(c==="UNP")unp++;
+    else if(c==="SH"){work++;hrs+=4;}
+    else{work++;hrs+=emp.shiftHours||8;}
+  });
+  return{work,off,al,ex,unp,hrs,alRem:emp.annualLeave-emp.alUsed};
+}
+
+// ═══════════════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════════════
+function backToLanding() {
+  hide("emp-portal"); hide("app"); hide("adminPassModal");
+  show("landing","flex");
+}
+function openEmpPortal() {
+  hide("landing");
+  show("emp-portal","flex");
+  document.getElementById("empIdInp").focus();
+}
+function showAdminPass() {
+  document.getElementById("adminPassModal").classList.add("show");
+  document.getElementById("passInput").value="";
+  document.getElementById("passError").textContent="";
+  document.getElementById("passInput").focus();
+}
+function cancelPass() { document.getElementById("adminPassModal").classList.remove("show"); }
+function toggleHint() {
+  const h = document.getElementById("passHint");
+  h.style.display = h.style.display==="none"?"inline":"none";
+}
+function checkPass() {
+  const val = document.getElementById("passInput").value;
+  if(val === S.adminPass) {
+    document.getElementById("adminPassModal").classList.remove("show");
+    hide("landing");
+    show("app","flex");
+    initAdmin();
+  } else {
+    document.getElementById("passError").textContent = "❌ Incorrect password. Try again.";
+    document.getElementById("passInput").value="";
+  }
+}
+function lockAdmin() {
+  hide("app");
+  show("landing","flex");
+}
+function changePasswordFlow() {
+  cancelPass();
+  show("app","flex");
+  hide("landing");
+  initAdmin();
+  switchPage("settings");
+}
+function hide(id){ const el=document.getElementById(id); if(el){el.style.display="none"; el.classList.remove("show","visible");} }
+function show(id,type="block"){ const el=document.getElementById(id); if(el){el.style.display=type;} }
+
+function switchPage(name) {
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+  document.getElementById("page-"+name).classList.add("active");
+  document.querySelector(`[data-page="${name}"]`).classList.add("active");
+  if(name==="roster")   renderRoster();
+  if(name==="staff")    renderStaff();
+  if(name==="coverage") renderCoverage();
+  if(name==="dash")     renderDash();
+  if(name==="settings") renderSettings();
+}
+function changeMonth(d) {
+  S.month+=d;
+  if(S.month<0){S.month=11;S.year--;}
+  if(S.month>11){S.month=0;S.year++;}
+  document.getElementById("monthLabel").textContent=`${MONTHS[S.month]} ${S.year}`;
+  ensureSchedules();
+  renderAll();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+function initAdmin() {
+  loadState();
+  ensureSchedules();
+  populateAllSelects();
+  document.getElementById("monthLabel").textContent=`${MONTHS[S.month]} ${S.year}`;
+  renderAll();
+}
+function populateAllSelects() {
+  // Hotel filters
+  ["hotelFilter","staffHotelF","f-hotel"].forEach(id=>{
+    const el=document.getElementById(id); if(!el)return;
+    const isFilter = id!=="f-hotel";
+    el.innerHTML = (isFilter?'<option value="all">All Hotels</option>':'')+
+      HOTELS.filter(h=>h.id!=="all").map(h=>`<option value="${h.id}">${h.name}</option>`).join("");
+  });
+  // Position filters
+  ["rosterPosFilter","staffPosF"].forEach(id=>{
+    const el=document.getElementById(id); if(!el)return;
+    el.innerHTML='<option value="all">All Positions</option>'+
+      ALL_POSITIONS.map(p=>`<option>${p}</option>`).join("");
+  });
+  // Shift selects
+  ["f-shift","bShift"].forEach(id=>{
+    const el=document.getElementById(id); if(!el)return;
+    el.innerHTML=Object.entries(SHIFTS).map(([k,v])=>`<option value="${k}">${k} — ${v.label} ${v.time!=="—"?v.time:""}</option>`).join("");
+  });
+  populatePosForDept();
+}
+function populatePosForDept() {
+  const dept = document.getElementById("f-dept")?.value || "Front Office";
+  const el = document.getElementById("f-pos"); if(!el)return;
+  el.innerHTML=(DEPT_POSITIONS[dept]||[]).map(p=>`<option>${p}</option>`).join("");
+}
+function renderAll() {
+  const active=document.querySelector(".tab-btn.active")?.dataset.page||"dash";
+  if(active==="dash")     renderDash();
+  if(active==="roster")   renderRoster();
+  if(active==="staff")    renderStaff();
+  if(active==="coverage") renderCoverage();
+  if(active==="settings") renderSettings();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════════════════
+function renderDash() {
+  const hf=document.getElementById("hotelFilter")?.value||"all";
+  const filt=hf==="all"?S.staff:S.staff.filter(e=>e.hotel===hf||e.hotel==="all");
+  let tw=0,th=0,tal=0,tex=0;
+  filt.forEach(emp=>{const s=calcStats(emp,getEmpSch(emp.id));tw+=s.work;th+=s.hrs;tal+=s.al;tex+=s.ex;});
+  document.getElementById("dashStats").innerHTML=[
+    {l:"Total Staff",v:filt.length,i:"👥",bg:"#1B2D4A",c:"#fff"},
+    {l:"Work Days (sum)",v:tw,i:"✅",bg:"#1B5E20",c:"#fff"},
+    {l:"Total Hours",v:th+"h",i:"⏰",bg:"#004D40",c:"#fff"},
+    {l:"Annual Leave Used",v:tal,i:"🏖",bg:"#E65C00",c:"#fff"},
+  ].map(s=>`<div class="stat-card" style="background:${s.bg}">
+    <div style="font-size:20px">${s.i}</div>
+    <div class="stat-val" style="color:${s.c}">${s.v}</div>
+    <div class="stat-label" style="color:${s.c}">${s.l}</div>
+  </div>`).join("");
+
+  document.getElementById("hotelBreakdown").innerHTML=HOTELS.filter(h=>h.id!=="all").map(h=>{
+    const cnt=S.staff.filter(e=>e.hotel===h.id).length;
+    const mgmt=S.staff.filter(e=>e.hotel==="all").length;
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--ice)">
+      <span class="hotel-badge" style="background:${h.light};color:${h.color};border-color:${h.color}30">${h.name}</span>
+      <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:var(--navy)">${cnt} <span style="font-size:10px;color:var(--slate2);font-weight:400">+${mgmt} mgmt</span></span>
+    </div>`;
+  }).join("")||"<p style='font-size:12px;color:var(--slate2)'>No staff added yet.</p>";
+
+  document.getElementById("deptBreakdown").innerHTML=["Front Office","Housekeeping","Recreation"].map(dept=>{
+    const dc=DEPT_COLORS[dept]||{};
+    const cnt=S.staff.filter(e=>e.department===dept).length;
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--ice)">
+      <span class="dept-badge" style="background:${dc.bg};color:${dc.color};border-color:${dc.color}30">${dept}</span>
+      <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:15px">${cnt}</span>
+    </div>`;
+  }).join("");
+
+  const today=new Date().getDate();
+  const alerts=[];
+  HOTELS.filter(h=>h.id!=="all").forEach(h=>{
+    const hs=S.staff.filter(e=>e.hotel===h.id||e.hotel==="all");
+    const onDuty=hs.filter(e=>{const c=getEmpSch(e.id)[today];return c&&!["OFF","AL","EX","UNP"].includes(c);}).length;
+    if(onDuty===0) alerts.push(h.name);
+  });
+  document.getElementById("todayAlerts").innerHTML=alerts.length
+    ?alerts.map(n=>`<div class="alert alert-danger" style="margin-bottom:6px;padding:10px 14px">🚨 <strong>${n}</strong> — No staff on duty today</div>`).join("")
+    :`<div class="alert alert-success">✅ All hotels have staff on duty today.</div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ROSTER
+// ═══════════════════════════════════════════════════════════════
+let popEmpId=null, popDay=null;
+
+function renderRoster() {
+  const numDays=getDaysInMonth(S.year,S.month);
+  const hf=document.getElementById("hotelFilter")?.value||"all";
+  const pf=document.getElementById("rosterPosFilter")?.value||"all";
+  const df=document.getElementById("rosterDeptFilter")?.value||"all";
+  const srch=document.getElementById("rosterSearch")?.value.toLowerCase()||"";
+
+  let filt=S.staff;
+  if(hf!=="all") filt=filt.filter(e=>e.hotel===hf||e.hotel==="all");
+  if(pf!=="all") filt=filt.filter(e=>e.position===pf);
+  if(df!=="all") filt=filt.filter(e=>e.department===df);
+  if(srch) filt=filt.filter(e=>e.name.toLowerCase().includes(srch)||e.id.toLowerCase().includes(srch));
+
+  const days=Array.from({length:numDays},(_,i)=>i+1);
+  const dayThs=days.map(d=>{
+    const dow=new Date(S.year,S.month,d).getDay();
+    const isSat=dow===6;
+    return `<th class="${isSat?"sat-th":""}" style="text-align:center;min-width:34px;padding:7px 1px">
+      <div style="font-size:9px;font-weight:800">${d}</div>
+      <div style="font-size:7px;opacity:.65">${DAYS_S[dow]}</div>
+    </th>`;
+  }).join("");
+
+  const rows=filt.map((emp,ei)=>{
+    const sch=getEmpSch(emp.id);
+    const st=calcStats(emp,sch);
+    const hotel=HOTELS.find(h=>h.id===emp.hotel);
+    const dc=DEPT_COLORS[emp.department]||{bg:"#eee",color:"#333"};
+    const cells=days.map(d=>{
+      const code=sch[d]||"";
+      const sh=SHIFTS[code];
+      const dow=new Date(S.year,S.month,d).getDay();
+      const isSat=dow===6;
+      const cls=sh?`sp-${code}`:"sp-empty";
+      return `<td class="${isSat?"sat-td":""}" style="padding:2px 1px;text-align:center">
+        <div class="sp ${cls}" onclick="openPicker(event,'${emp.id}',${d})" title="${sh?sh.label+' '+sh.time:''}">${code||"—"}</div>
+      </td>`;
+    }).join("");
+    return `<tr>
+      <td class="sticky-col" style="min-width:170px;padding:7px 11px">
+        <div style="font-weight:600;font-size:11px">${emp.name||"—"}</div>
+        <div style="font-size:9px;color:${hotel?.color||"#888"};margin-top:1px">${hotel?.name||emp.hotel}</div>
+      </td>
+      <td style="font-size:9px;white-space:nowrap"><span class="dept-badge" style="background:${dc.bg};color:${dc.color};border-color:${dc.color}30">${emp.department}</span></td>
+      <td style="font-size:9px;color:var(--slate);white-space:nowrap;max-width:120px">${emp.position}</td>
+      ${cells}
+      <td style="text-align:center;background:#E8F5E9;font-weight:800;color:#1B5E20;font-size:12px">${st.work}</td>
+      <td style="text-align:center;background:#E0F2F1;font-weight:800;color:#004D40;font-size:11px">${st.hrs}h</td>
+    </tr>`;
+  }).join("");
+
+  const legend=Object.entries(SHIFTS).map(([k,v])=>
+    `<span class="sp sp-${k}" style="cursor:default;font-size:8px">${k}<span style="font-weight:400"> ${v.time!=="—"?v.time:v.label}</span></span>`
+  ).join("");
+
+  document.getElementById("rosterWrap").innerHTML=`
+    <div style="padding:10px 14px;background:var(--ice);display:flex;flex-wrap:wrap;gap:5px;border-bottom:1px solid #dde3f0">${legend}</div>
+    <table>
+      <thead><tr>
+        <th class="sticky-col" style="min-width:170px">EMPLOYEE</th>
+        <th style="min-width:90px">DEPT</th>
+        <th style="min-width:130px">POSITION</th>
+        ${dayThs}
+        <th style="text-align:center;background:#1B5E20;min-width:40px">DAYS</th>
+        <th style="text-align:center;background:#004D40;min-width:46px">HRS</th>
+      </tr></thead>
+      <tbody>${rows||`<tr><td colspan="100" style="text-align:center;padding:40px;color:var(--slate2);font-size:13px">No employees found. Add staff in the Staff tab.</td></tr>`}</tbody>
+    </table>`;
+}
+
+function openPicker(ev, empId, day) {
+  ev.stopPropagation();
+  popEmpId=empId; popDay=day;
+  const popup=document.getElementById("shiftPopup");
+  popup.innerHTML=Object.entries(SHIFTS).map(([k,v])=>
+    `<div class="spi" style="background:${v.bg};border-color:${v.border}" onclick="selectShift('${k}')">
+      <span class="spi-code" style="color:${v.color}">${k}</span>
+      <span class="spi-time" style="color:${v.color}">${v.time!=="—"?v.time:v.label}</span>
+    </div>`).join("");
+  const r=ev.currentTarget.getBoundingClientRect();
+  popup.style.display="grid";
+  popup.style.top=(r.bottom+window.scrollY+4)+"px";
+  popup.style.left=Math.min(r.left,window.innerWidth-210)+"px";
+}
+function selectShift(code) {
+  if(popEmpId&&popDay) { setShift(popEmpId,popDay,code); renderRoster(); }
+  closePopup();
+}
+function closePopup() { document.getElementById("shiftPopup").style.display="none"; popEmpId=null; popDay=null; }
+document.addEventListener("click",e=>{ if(!document.getElementById("shiftPopup").contains(e.target)) closePopup(); });
+
+// ═══════════════════════════════════════════════════════════════
+// STAFF MANAGEMENT
+// ═══════════════════════════════════════════════════════════════
+let editingId=null;
+const selectedIds=new Set();
+
+function renderStaff() {
+  const srch=document.getElementById("staffSearch")?.value.toLowerCase()||"";
+  const hf=document.getElementById("staffHotelF")?.value||"all";
+  const df=document.getElementById("staffDeptF")?.value||"all";
+  const pf=document.getElementById("staffPosF")?.value||"all";
+  let filt=S.staff;
+  if(hf!=="all") filt=filt.filter(e=>e.hotel===hf);
+  if(df!=="all") filt=filt.filter(e=>e.department===df);
+  if(pf!=="all") filt=filt.filter(e=>e.position===pf);
+  if(srch) filt=filt.filter(e=>e.name.toLowerCase().includes(srch)||e.id.toLowerCase().includes(srch)||e.position.toLowerCase().includes(srch));
+
+  const rows=filt.map((emp,ei)=>{
+    const hotel=HOTELS.find(h=>h.id===emp.hotel);
+    const sh=SHIFTS[emp.defaultShift];
+    const dc=DEPT_COLORS[emp.department]||{bg:"#eee",color:"#333"};
+    const isSelected=selectedIds.has(emp.id);
+    return `<tr style="${isSelected?"background:#FFF8E1":ei%2===0?"":"background:#FAFBFD"}">
+      <td style="padding:8px 10px">
+        <input type="checkbox" ${isSelected?"checked":""} onchange="toggleSelect('${emp.id}',this.checked)" style="cursor:pointer">
+      </td>
+      <td style="font-family:'DM Mono',monospace;font-size:10px;color:var(--slate2)">${emp.id}</td>
+      <td><div style="font-weight:600;font-size:11px">${emp.name||"—"}</div></td>
+      <td><span class="dept-badge" style="background:${dc.bg};color:${dc.color};border-color:${dc.color}30;font-size:9px">${emp.department}</span></td>
+      <td style="font-size:10px;color:var(--slate);max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${emp.position}</td>
+      <td><span class="hotel-badge" style="background:${hotel?.light};color:${hotel?.color};border-color:${hotel?.color}30;font-size:9px">${hotel?.name||emp.hotel}</span></td>
+      <td><span class="sp sp-${emp.defaultShift}" style="cursor:default;font-size:9px">${emp.defaultShift}</span></td>
+      <td style="text-align:center;font-weight:700;color:#004D40;font-size:11px">${emp.shiftHours}h</td>
+      <td style="text-align:center;font-size:10px">${emp.offDays}</td>
+      <td style="text-align:center;font-weight:600;color:#1B5E20;font-size:11px">${emp.annualLeave}</td>
+      <td style="text-align:center;color:${emp.alUsed>0?"#c62828":"#aaa"};font-size:11px">${emp.alUsed}</td>
+      <td style="text-align:center;font-weight:700;color:#2E7D32;font-size:11px">${emp.annualLeave-emp.alUsed}</td>
+      <td>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-ghost btn-xs" onclick="openEditStaff('${emp.id}')">✏️</button>
+          <button class="btn btn-danger btn-xs" onclick="deleteOne('${emp.id}')">🗑</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join("");
+
+  document.getElementById("staffWrap").innerHTML=`
+    <div style="padding:8px 12px;background:var(--ice);border-bottom:1px solid #dde3f0;font-size:10px;color:var(--slate);display:flex;justify-content:space-between;align-items:center">
+      <span>Showing <strong>${filt.length}</strong> of ${S.staff.length} employees</span>
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:10px;font-weight:600">
+        <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this.checked,${JSON.stringify(filt.map(e=>e.id))})"> Select All Visible
+      </label>
+    </div>
+    <table>
+      <thead><tr>
+        <th style="width:36px"></th>
+        <th>ID</th><th>Name</th><th>Dept</th><th>Position</th><th>Hotel</th>
+        <th>Shift</th><th style="text-align:center">Hrs</th>
+        <th style="text-align:center">Off/Mo</th><th style="text-align:center">AL</th>
+        <th style="text-align:center">Used</th><th style="text-align:center">Left</th><th>Actions</th>
+      </tr></thead>
+      <tbody>${rows||`<tr><td colspan="13" style="text-align:center;padding:40px;color:var(--slate2);font-size:13px">
+        No employees yet. Click <strong>+ Add Employee</strong> to get started.
+      </td></tr>`}</tbody>
+    </table>`;
+}
+
+function toggleSelect(id,checked) { checked?selectedIds.add(id):selectedIds.delete(id); }
+function toggleSelectAll(checked,ids) { ids.forEach(id=>checked?selectedIds.add(id):selectedIds.delete(id)); renderStaff(); }
+
+function openAddStaff() {
+  editingId=null;
+  document.getElementById("staffModalTitle").textContent="➕ Add Employee";
+  document.getElementById("f-name").value="";
+  document.getElementById("f-id").value=`E${String(S.staff.length+1).padStart(3,"0")}`;
+  document.getElementById("f-dept").value="Front Office";
+  populatePosForDept();
+  document.getElementById("f-hotel").value="marina";
+  document.getElementById("f-shift").value="MOR";
+  document.getElementById("f-hrs").value="8";
+  document.getElementById("f-off").value="4";
+  document.getElementById("f-al").value="21";
+  document.getElementById("f-alused").value="0";
+  document.getElementById("f-notes").value="";
+  document.getElementById("staffModal").style.display="flex";
+}
+function openEditStaff(id) {
+  const emp=S.staff.find(e=>e.id===id); if(!emp)return;
+  editingId=id;
+  document.getElementById("staffModalTitle").textContent="✏️ Edit Employee";
+  document.getElementById("f-name").value=emp.name;
+  document.getElementById("f-id").value=emp.id;
+  document.getElementById("f-dept").value=emp.department||"Front Office";
+  populatePosForDept();
+  document.getElementById("f-pos").value=emp.position;
+  document.getElementById("f-hotel").value=emp.hotel;
+  document.getElementById("f-shift").value=emp.defaultShift;
+  document.getElementById("f-hrs").value=emp.shiftHours;
+  document.getElementById("f-off").value=emp.offDays;
+  document.getElementById("f-al").value=emp.annualLeave;
+  document.getElementById("f-alused").value=emp.alUsed;
+  document.getElementById("f-notes").value=emp.notes||"";
+  document.getElementById("staffModal").style.display="flex";
+}
+function saveStaff() {
+  const name=document.getElementById("f-name").value.trim();
+  const id=document.getElementById("f-id").value.trim().toUpperCase();
+  if(!name||!id){alert("Name and ID are required.");return;}
+  if(!editingId && S.staff.find(e=>e.id===id)){alert("Employee ID already exists!");return;}
+  const emp={
+    id, name,
+    department: document.getElementById("f-dept").value,
+    position:   document.getElementById("f-pos").value,
+    hotel:      document.getElementById("f-hotel").value,
+    defaultShift: document.getElementById("f-shift").value,
+    shiftHours: +document.getElementById("f-hrs").value,
+    offDays:    +document.getElementById("f-off").value,
+    annualLeave:+document.getElementById("f-al").value,
+    alUsed:     +document.getElementById("f-alused").value,
+    notes:      document.getElementById("f-notes").value.trim(),
+  };
+  if(editingId) {
+    S.staff=S.staff.map(e=>e.id===editingId?emp:e);
+    logChange("Edit Staff",`Updated ${emp.name} (${emp.id})`);
+  } else {
+    S.staff.push(emp);
+    logChange("Add Staff",`Added ${emp.name} (${emp.id})`);
+  }
+  // Generate schedule if missing
+  const k=schKey();
+  if(!S.schedules[emp.id]) S.schedules[emp.id]={};
+  if(!S.schedules[emp.id][k]) S.schedules[emp.id][k]=genDefaultSch(emp,getDaysInMonth(S.year,S.month));
+  saveState();
+  closeModal("staffModal");
+  renderStaff();
+}
+function deleteOne(id) {
+  const emp=S.staff.find(e=>e.id===id);
+  if(!confirm(`Remove ${emp?.name||id} from the roster?`))return;
+  S.staff=S.staff.filter(e=>e.id!==id);
+  delete S.schedules[id];
+  selectedIds.delete(id);
+  logChange("Delete Staff",`Removed ${emp?.name} (${id})`);
+  saveState(); renderStaff();
+}
+function bulkDeleteSelected() {
+  if(selectedIds.size===0){alert("Select at least one employee.");return;}
+  if(!confirm(`Delete ${selectedIds.size} selected employee(s)? This cannot be undone.`))return;
+  selectedIds.forEach(id=>{
+    const emp=S.staff.find(e=>e.id===id);
+    logChange("Delete Staff",`Removed ${emp?.name} (${id})`);
+    S.staff=S.staff.filter(e=>e.id!==id);
+    delete S.schedules[id];
+  });
+  selectedIds.clear();
+  saveState(); renderStaff();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// COVERAGE
+// ═══════════════════════════════════════════════════════════════
+function renderCoverage() {
+  const numDays=getDaysInMonth(S.year,S.month);
+  const days=Array.from({length:numDays},(_,i)=>i+1);
+  const hotels=HOTELS.filter(h=>h.id!=="all");
+  const covMap={};
+  const alerts=[];
+  hotels.forEach(h=>{
+    covMap[h.id]={};
+    const hs=S.staff.filter(e=>e.hotel===h.id||e.hotel==="all");
+    days.forEach(d=>{
+      const cnt=hs.filter(e=>{const c=getEmpSch(e.id)[d];return c&&!["OFF","AL","EX","UNP"].includes(c);}).length;
+      covMap[h.id][d]=cnt;
+      if(cnt===0) alerts.push({h:h.name,d});
+    });
+  });
+  document.getElementById("covAlerts").innerHTML=alerts.length
+    ?`<div class="alert alert-danger"><span style="font-size:18px">🚨</span><div>
+        <strong>${alerts.length} alerts</strong> — Hotels with no staff on duty:<br>
+        <div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:4px">
+          ${alerts.map(a=>`<span style="background:#FFCDD2;color:#B71C1C;border:1px solid #EF9A9A;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:600">${a.h} · Day ${a.d}</span>`).join("")}
+        </div></div></div>`
+    :`<div class="alert alert-success"><span>✅</span><strong>All clear!</strong> Every hotel has at least 1 staff member on duty each day.</div>`;
+
+  const dayThs=days.map(d=>{
+    const dow=new Date(S.year,S.month,d).getDay();
+    const isSat=dow===6;
+    return `<th class="${isSat?"sat-th":""}" style="text-align:center;min-width:30px;padding:5px 1px;font-size:8px">${d}<br><span style="font-weight:400">${DAYS_S[dow]}</span></th>`;
+  }).join("");
+
+  const rows=hotels.map(h=>{
+    const cells=days.map(d=>{
+      const cnt=covMap[h.id][d];
+      const cls=cnt===0?"cov-0":cnt===1?"cov-1":"cov-ok";
+      return `<td style="padding:3px 1px;text-align:center"><div class="cov-cell ${cls}">${cnt===0?"🚨":cnt}</div></td>`;
+    }).join("");
+    return `<tr>
+      <td class="sticky-col" style="min-width:170px">
+        <span class="hotel-badge" style="background:${h.light};color:${h.color};border-color:${h.color}30">${h.name}</span>
+      </td>${cells}
+    </tr>`;
+  }).join("");
+
+  document.getElementById("covTable").innerHTML=`<table>
+    <thead><tr>
+      <th class="sticky-col" style="min-width:170px">HOTEL</th>${dayThs}
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SETTINGS
+// ═══════════════════════════════════════════════════════════════
+function renderSettings() {
+  document.getElementById("shiftSettingsPanel").innerHTML=Object.entries(SHIFTS).map(([k,v])=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--ice)">
+      <span class="sp sp-${k}" style="cursor:default;min-width:36px">${k}</span>
+      <span style="font-size:11px;color:var(--slate);width:80px">${v.label}</span>
+      <input class="inp inp-sm" style="width:100px" id="stime-${k}" value="${v.time!=="—"?v.time:""}" placeholder="HH:MM–HH:MM"
+        onchange="SHIFTS['${k}'].time=this.value||'—'">
+      <select class="inp inp-sm" style="width:80px" onchange="SHIFTS['${k}'].hours=+this.value">
+        ${[4,8,9,10,12].map(n=>`<option value="${n}" ${v.hours===n?"selected":""}>${n}h</option>`).join("")}
+      </select>
+    </div>`).join("")+
+    `<button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="saveState();alert('Shift settings saved!')">Save Shift Settings</button>`;
+}
+function changePassword() {
+  const cur=document.getElementById("curPass").value;
+  const nw=document.getElementById("newPass").value;
+  const cf=document.getElementById("confPass").value;
+  const msg=document.getElementById("passChangeMsg");
+  if(cur!==S.adminPass){msg.textContent="❌ Current password is incorrect.";msg.style.color="var(--red)";return;}
+  if(nw.length<6){msg.textContent="❌ New password must be at least 6 characters.";msg.style.color="var(--red)";return;}
+  if(nw!==cf){msg.textContent="❌ Passwords do not match.";msg.style.color="var(--red)";return;}
+  S.adminPass=nw;
+  saveState();
+  msg.textContent="✅ Password changed successfully!";
+  msg.style.color="var(--green)";
+  document.getElementById("curPass").value="";
+  document.getElementById("newPass").value="";
+  document.getElementById("confPass").value="";
+  // Hide the password hint
+  document.getElementById("passHint").style.display="none";
+}
+function clearSchedulesOnly() {
+  if(!confirm("Reset ALL schedules for ALL months? Staff data will be kept."))return;
+  S.schedules={};
+  ensureSchedules();
+  saveState();
+  logChange("Data Reset","Cleared all schedules");
+  alert("Schedules reset. Default schedules regenerated.");
+  renderAll();
+}
+function clearAll() {
+  if(!confirm("⚠️ Delete ALL data including staff and schedules? This cannot be undone!"))return;
+  if(!confirm("Are you absolutely sure? All 150+ employees will be removed."))return;
+  S.staff=[]; S.schedules=[]; S.changeLog=[];
+  saveState();
+  renderAll();
+  alert("All data cleared.");
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BULK FILL
+// ═══════════════════════════════════════════════════════════════
+function openBulkFill() {
+  document.getElementById("bTo").value=getDaysInMonth(S.year,S.month);
+  document.getElementById("bulkModal").style.display="flex";
+}
+function applyBulk() {
+  const from=+document.getElementById("bFrom").value;
+  const to=+document.getElementById("bTo").value;
+  const code=document.getElementById("bShift").value;
+  const scope=document.getElementById("bScope").value;
+  const numDays=getDaysInMonth(S.year,S.month);
+  const hf=document.getElementById("hotelFilter")?.value||"all";
+  let targets=S.staff;
+  if(scope==="hotel") targets=targets.filter(e=>e.hotel===hf||hf==="all");
+  else if(scope==="visible"){
+    const pf=document.getElementById("rosterPosFilter")?.value||"all";
+    const df=document.getElementById("rosterDeptFilter")?.value||"all";
+    if(hf!=="all") targets=targets.filter(e=>e.hotel===hf||e.hotel==="all");
+    if(pf!=="all") targets=targets.filter(e=>e.position===pf);
+    if(df!=="all") targets=targets.filter(e=>e.department===df);
+  }
+  const k=schKey();
+  targets.forEach(emp=>{
+    if(!S.schedules[emp.id]) S.schedules[emp.id]={};
+    if(!S.schedules[emp.id][k]) S.schedules[emp.id][k]={};
+    for(let d=from;d<=Math.min(to,numDays);d++) S.schedules[emp.id][k][d]=code;
+  });
+  logChange("Bulk Fill",`${code} applied Day ${from}–${to} to ${targets.length} staff`);
+  saveState();
+  closeModal("bulkModal");
+  renderRoster();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EXPORT / PRINT
+// ═══════════════════════════════════════════════════════════════
+function exportCSV() {
+  const numDays=getDaysInMonth(S.year,S.month);
+  const hf=document.getElementById("hotelFilter")?.value||"all";
+  const filt=hf==="all"?S.staff:S.staff.filter(e=>e.hotel===hf||e.hotel==="all");
+  const header=["ID","Name","Department","Position","Hotel","Default Shift","Hrs/Day",
+    ...Array.from({length:numDays},(_,i)=>`Day ${i+1}`),"Work Days","OFF","AL","Extra Off","Total Hrs"];
+  const rows=filt.map(emp=>{
+    const sch=getEmpSch(emp.id);
+    const st=calcStats(emp,sch);
+    const hotel=HOTELS.find(h=>h.id===emp.hotel);
+    return[emp.id,emp.name,emp.department,emp.position,hotel?.name||emp.hotel,emp.defaultShift,emp.shiftHours,
+      ...Array.from({length:numDays},(_,i)=>sch[i+1]||""),st.work,st.off,st.al,st.ex,st.hrs];
+  });
+  const csv=[header,...rows].map(r=>r.map(v=>`"${v}"`).join(",")).join("\n");
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
+  a.download=`YasPlaza_Roster_${MONTHS[S.month]}_${S.year}.csv`;
+  a.click();
+}
+function printRoster() {
+  const numDays=getDaysInMonth(S.year,S.month);
+  const hf=document.getElementById("hotelFilter")?.value||"all";
+  const filt=hf==="all"?S.staff:S.staff.filter(e=>e.hotel===hf||e.hotel==="all");
+  const hotelName=HOTELS.find(h=>h.id===hf)?.name||"All Hotels";
+  const dayThs=Array.from({length:numDays},(_,i)=>{
+    const d=i+1;const dow=new Date(S.year,S.month,d).getDay();const isSat=dow===6;
+    return`<th style="background:${isSat?"#c62828":"#1B2A4A"};color:${isSat?"#FFD54F":"#fff"};font-size:7px;padding:2px;text-align:center;min-width:24px;border:1px solid #444">${d}<br>${DAYS_S[dow]}</th>`;
+  }).join("");
+  const rows=filt.map(emp=>{
+    const sch=getEmpSch(emp.id);
+    const st=calcStats(emp,sch);
+    const hotel=HOTELS.find(h=>h.id===emp.hotel);
+    const dc=DEPT_COLORS[emp.department]||{};
+    const cells=Array.from({length:numDays},(_,i)=>{
+      const d=i+1;const c=sch[d]||"";const sh=SHIFTS[c];
+      const dow=new Date(S.year,S.month,d).getDay();const isSat=dow===6;
+      return`<td style="background:${sh?.bg||"#fff"};color:${sh?.color||"#333"};font-size:7px;font-weight:700;padding:1px;border:1px solid #ddd;text-align:center;${isSat?"border-left:2px solid #c62828;border-right:2px solid #c62828":""}">${c}</td>`;
+    }).join("");
+    return`<tr><td style="font-size:9px;padding:3px 5px;border:1px solid #ddd;font-weight:600;white-space:nowrap">${emp.name}</td>
+      <td style="font-size:7px;padding:2px;border:1px solid #ddd;background:${dc.bg};color:${dc.color}">${emp.department}</td>
+      <td style="font-size:7px;padding:2px;border:1px solid #ddd;color:#555">${emp.position}</td>
+      ${cells}
+      <td style="background:#E8F5E9;color:#1B5E20;font-weight:800;font-size:9px;text-align:center;border:1px solid #ddd">${st.work}</td>
+      <td style="background:#E0F2F1;color:#004D40;font-weight:800;font-size:9px;text-align:center;border:1px solid #ddd">${st.hrs}h</td>
+    </tr>`;
+  }).join("");
+  const win=window.open("","_blank");
+  win.document.write(`<!DOCTYPE html><html><head><title>Roster ${MONTHS[S.month]} ${S.year}</title>
+  <style>body{font-family:Calibri,Arial;margin:10px}table{border-collapse:collapse;width:100%}@media print{.np{display:none}}</style>
+  </head><body>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:6px;border-bottom:3px solid #1B2A4A">
+    <div><h2 style="margin:0;color:#1B2A4A;font-size:14px">🏨 Yas Plaza Hotels — ${hotelName}</h2>
+    <p style="margin:2px 0 0;color:#666;font-size:9px">${MONTHS[S.month]} ${S.year} · ${filt.length} employees · Generated ${new Date().toLocaleString()}</p></div>
+    <button class="np" onclick="window.print()" style="background:#1B2A4A;color:#fff;border:none;padding:7px 14px;border-radius:6px;cursor:pointer;font-size:11px">🖨 Print / Save PDF</button>
+  </div>
+  <table><thead><tr>
+    <th style="background:#C9963A;color:#fff;font-size:8px;padding:3px;border:1px solid #aaa;min-width:110px;text-align:left">Employee</th>
+    <th style="background:#C9963A;color:#fff;font-size:8px;padding:3px;border:1px solid #aaa;min-width:60px">Dept</th>
+    <th style="background:#C9963A;color:#fff;font-size:8px;padding:3px;border:1px solid #aaa;min-width:90px">Position</th>
+    ${dayThs}
+    <th style="background:#1B5E20;color:#fff;font-size:8px;padding:3px;border:1px solid #aaa;text-align:center">Days</th>
+    <th style="background:#004D40;color:#fff;font-size:8px;padding:3px;border:1px solid #aaa;text-align:center">Hrs</th>
+  </tr></thead><tbody>${rows}</tbody></table>
+  <div style="margin-top:7px;display:flex;gap:6px;flex-wrap:wrap">
+    ${Object.entries(SHIFTS).map(([k,v])=>`<span style="background:${v.bg};color:${v.color};border:1px solid ${v.border};border-radius:3px;padding:1px 5px;font-size:7px"><b>${k}</b>${v.time!=="—"?" "+v.time:" "+v.label}</span>`).join("")}
+  </div></body></html>`);
+  win.document.close();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EMPLOYEE PORTAL
+// ═══════════════════════════════════════════════════════════════
+function loginEmp() {
+  const inputId=document.getElementById("empIdInp").value.trim().toUpperCase();
+  if(!inputId){document.getElementById("empErr").textContent="Please enter your Employee ID.";return;}
+  loadState();
+  const emp=S.staff.find(e=>e.id===inputId);
+  if(!emp){
+    document.getElementById("empErr").textContent="❌ Employee ID not found. Please check with your supervisor.";
+    return;
+  }
+  showEmpDash(emp);
+}
+function showEmpDash(emp) {
+  ensureSchedules();
+  const sch=getEmpSch(emp.id);
+  const st=calcStats(emp,sch);
+  const hotel=HOTELS.find(h=>h.id===emp.hotel);
+  const dc=DEPT_COLORS[emp.department]||{bg:"#333",color:"#fff"};
+
+  document.getElementById("eAvatar").textContent=emp.name.charAt(0);
+  document.getElementById("eNm").textContent=emp.name;
+  document.getElementById("ePs").textContent=`${emp.position}`;
+  document.getElementById("eHt").innerHTML=`🏨 ${hotel?.name||emp.hotel}`;
+  document.getElementById("eDept").textContent=emp.department;
+  document.getElementById("eDept").style.background=dc.bg;
+  document.getElementById("eDept").style.color=dc.color;
+  document.getElementById("eMonthLbl").textContent=`${MONTHS[S.month]} ${S.year}`;
+  document.getElementById("eLastSave").textContent=S.lastSaved?new Date(S.lastSaved).toLocaleString():"—";
+
+  document.getElementById("es-work").textContent=st.work;
+  document.getElementById("es-off").textContent=st.off;
+  document.getElementById("es-al").textContent=st.al;
+  document.getElementById("es-hrs").textContent=st.hrs+"h";
+  document.getElementById("es-al-rem").textContent=st.alRem;
+  document.getElementById("es-ex").textContent=st.ex;
+  document.getElementById("es-unp").textContent=st.unp;
+
+  // Next 7 days
+  const today=new Date();
+  const days7=Array.from({length:7},(_,i)=>{const d=new Date(today);d.setDate(today.getDate()+i);return d;});
+  document.getElementById("eWeekRange").textContent=
+    `${days7[0].toLocaleDateString("en",{month:"short",day:"numeric"})} – ${days7[6].toLocaleDateString("en",{month:"short",day:"numeric"})}`;
+
+  document.getElementById("eWeekGrid").innerHTML=days7.map((d,i)=>{
+    const isToday=i===0;
+    const isSat=d.getDay()===6;
+    const dayNum=d.getDate();
+    const dayMonth=d.getMonth();
+    const dayYear=d.getFullYear();
+    let code="", sh=null;
+    if(dayMonth===S.month && dayYear===S.year) {
+      code=sch[dayNum]||"";
+    } else {
+      const otherKey=`${dayYear}-${dayMonth}`;
+      code=S.schedules[emp.id]?.[otherKey]?.[dayNum]||"";
+    }
+    sh=SHIFTS[code];
+    return`<div class="week-day ${isToday?"today":""} ${isSat?"is-sat":""}">
+      <div class="wd-name">${DAYS_S[d.getDay()]}</div>
+      <div class="wd-num">${dayNum}</div>
+      ${sh?`<div class="wd-shift" style="background:${sh.bg};color:${sh.color}">${code}</div>
+            <div class="wd-time">${sh.time!=="—"?sh.time:sh.label}</div>`
+          :`<div class="wd-shift" style="background:#333;color:#888">—</div>`}
+    </div>`;
+  }).join("");
+
+  document.getElementById("empLoginForm").style.display="none";
+  document.getElementById("empDash").classList.add("show");
+}
+function logoutEmp() {
+  document.getElementById("empDash").classList.remove("show");
+  document.getElementById("empLoginForm").style.display="block";
+  document.getElementById("empIdInp").value="";
+  document.getElementById("empErr").textContent="";
+}
+
+// ═══════════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════════
+function closeModal(id) { document.getElementById(id).style.display="none"; }
+
+// ═══════════════════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════════════════
+loadState();
+</script>
+</body>
+</html>
